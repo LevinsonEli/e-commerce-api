@@ -4,3 +4,6 @@ The e-commrece web api with users, products, cart and orders
 ## Stack
   * NodeJs + Express
   * MongoDB
+
+Testable with postman collection on https://e-commerce-api-express.herokuapp.com/api/v1
+Or on your locahost
