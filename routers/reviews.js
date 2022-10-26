@@ -5,14 +5,14 @@ const {
 } = require('../middleware/authentication');
 const {
   createReview,
-  getAllREviews,
+  getAllReviews,
   getReview,
   updateReview,
   deleteReview,
 } = require('../controllers/reviews');
 
 router.route('/')
- .get(getAllREviews)
+ .get(getAllReviews)
  .post(authenticateUser, createReview);
 router.route('/:id')
   .get(getReview)

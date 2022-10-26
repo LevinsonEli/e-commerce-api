@@ -8,9 +8,15 @@ const {
   createTokenUser,
 } = require('../utils');
 
+const UsersDbController = require('../db/controllers/users');
+
 const register = async (req, res) => {
  const { name, email, password } = req.body;
- const user = await User.create({ name, email, password });
+ const user = await UsersDbController.getInstance().add({
+   name,
+   email,
+   password,
+ });
 
  const tokenUser = createTokenUser(user);
  attachCookiesToResponse({ res, user: tokenUser });
@@ -19,22 +25,19 @@ const register = async (req, res) => {
 }
 
 const login = async (req, res) => {
- const { email, password } = req.body;
- if (!email || !password)
-  throw new CustomError.BadRequestError('Email and password must be provided');
+  const { email, password } = req.body;
+  if (!email || !password)
+    throw new CustomError.BadRequestError('Email and password must be provided');
 
- const foundUser = await User.findOne({ email });
- if (!foundUser) throw new CustomError.UnauthenticatedError('Invalid Credentials');
+  const foundUser = await UsersDbController.getInstance().getByEmail(email);
 
- const isValidPassword = await foundUser.comparePassword(password);
- if (!isValidPassword)
-  throw new CustomError.UnauthenticatedError('Invalid Credentials');
+  const isValidPassword = await foundUser.comparePassword(password);
+  if (!isValidPassword)
+    throw new CustomError.UnauthenticatedError('Invalid Credentials');
 
- const tokenUser = { userId: foundUser._id, name: foundUser.name, role: foundUser.role };
-
- attachCookiesToResponse({ res, user: tokenUser });
-
- res.status(StatusCodes.OK).json({ user: tokenUser });
+  const tokenUser = { userId: foundUser._id, name: foundUser.name, role: foundUser.role };
+  attachCookiesToResponse({ res, user: tokenUser });
+  res.status(StatusCodes.OK).json({ user: tokenUser });
 }
 
 const logout = async (req, res) => {

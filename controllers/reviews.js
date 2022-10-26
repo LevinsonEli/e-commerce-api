@@ -6,67 +6,73 @@ const {
   checkPermissions
 } = require('../utils');
 
-const createReview = async (req, res) => {
- const { product: productId } = req.body;
- const product = await Product.findOne({ _id: productId });
- if (!product)
-  throw new CustomError.NotFoundError('Product not found');
- 
- const existentReview = await Review.findOne({ createdBy: req.user.userId, product: productId });
- if (existentReview)
-  throw new CustomError.BadRequestError('User alreadt submitted review for this product');
+const ProductsDbController = require('../db/controllers/products');
+const ReviewsDbController = require('../db/controllers/reviews');
 
- req.body.createdBy = req.user.userId;
- const review = await Review.create( req.body );
- res.status(StatusCodes.CREATED).json({ review });
+const createReview = async (req, res) => {
+  const { product: productId } = req.body;
+  // const input = new CreateReviewInput(productId, title, description, ...args);
+  // ( throw exception on every validation fail )
+  // const review = await Review.create(input);
+  const product = await ProductsDbController.getInstance().get(productId);
+  if (!product)
+    throw new CustomError.NotFoundError('Product not found');
+  
+  const existentReview = await ReviewsDbController.getInstance().getByCreatorAndProduct(req.user.userId, productId);
+  if (existentReview)
+    throw new CustomError.BadRequestError('User already submitted review for this product');
+
+  req.body.createdBy = req.user.userId;
+  const review = await ReviewsDbController.getInstance().add(req.body);
+  console.log(req.body);
+  res.status(StatusCodes.CREATED).json({ review });
 }
 
-const getAllREviews = async (req, res) => {
- const reviews = await Review.find({})
-   .populate({ path: 'product', select: 'name company price' });
- res.status(StatusCodes.OK).json({ reviews, count: reviews.count });
+const getAllReviews = async (req, res) => {
+  const reviews = await ReviewsDbController.getInstance().getMany();
+  res.status(StatusCodes.OK).json({ reviews, count: reviews.count });
 };
 
 const getReview = async (req, res) => {
- const { id } = req.params;
- const review = await Review.findOne({ _id: id });
- if (!review)
-  throw new CustomError.NotFoundError('Review not found');
- res.status(StatusCodes.OK).json({ review });
+  const { id } = req.params;
+  const review = await ReviewsDbController.getInstance().get(id);
+  res.status(StatusCodes.OK).json({ review });
 };
 
 const updateReview = async (req, res) => {
- const { id } = req.params;
- const { rating, comment, title } = req.body;
+  const { id } = req.params;
+  const { rating, comment, title } = req.body;
 
- const review = await Review.findOne({ _id: id });
- if (!review) 
-  throw new CustomError.NotFoundError('Review not found');
+  const review = await ReviewsDbController.getInstance().get(id);
+  if (!review) 
+    throw new CustomError.NotFoundError('Review not found');
 
- checkPermissions(req.user, review.createdBy);
- review.rating = rating;
- review.title = title;
- review.comment = comment;
+  checkPermissions(req.user, review.createdBy);
+  const updatedReview = await ReviewsDbController.getInstance().update(id, {
+    rating,
+    comment,
+    title,
+  });
 
- await review.save();
- res.status(StatusCodes.OK).json({ review });
+  res.status(StatusCodes.OK).json({ updatedReview });
 };
 
 const deleteReview = async (req, res) => {
- const { id } = req.params;
+  const { id } = req.params;
 
- const review = await Review.findOne({ _id: id });
- if (!review)
-  throw new CustomError.NotFoundError('Review not found');
+  const review = await ReviewsDbController.getInstance().get(id);
+  if (!review)
+    throw new CustomError.NotFoundError('Review not found');
 
- checkPermissions(req.user, review.createdBy);
- await review.remove();
- res.status(StatusCodes.OK).json({ success: true });
+  // this part does not need to be inside the Input object
+  checkPermissions(req.user, review.createdBy);
+  await ReviewsDbController.getInstance().delete(id);
+  res.status(StatusCodes.OK).json({ success: true });
 };
 
 module.exports = {
   createReview,
-  getAllREviews,
+  getAllReviews,
   getReview,
   updateReview,
   deleteReview,

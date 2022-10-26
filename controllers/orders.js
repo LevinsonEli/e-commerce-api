@@ -1,8 +1,9 @@
-const Order = require('../models/Order');
-const Product = require('../models/Product');
 const { StatusCodes } = require('http-status-codes');
 const CustomError = require('../errors');
 const { checkPermissions } = require('../utils');
+
+const OrdersDbController = require('../db/controllers/orders');
+const ProductsDbController = require('../db/controllers/products');
 
 const fakeStripeAPI = async ({ amount, currency }) => {
  const clientSecret = 'secretValue';
@@ -10,23 +11,21 @@ const fakeStripeAPI = async ({ amount, currency }) => {
 }
 
 const getAllOrders = async (req, res) => {
- const orders = await Order.find({});
- res.status(StatusCodes.OK).json({ orders });
+  const orders = await OrdersDbController.getInstance().getMany();
+  res.status(StatusCodes.OK).json({ orders });
 }
 
 const getOrder = async (req, res) => {
- const { id: orderId } = req.params;
- const order = await Order.findOne({ _id: orderId });
- if (!order)
-  throw new CustomError.NotFoundError('Order not found');
- 
- checkPermissions(req.user, order.user);
- res.status(StatusCodes.OK).json({ order });
+  const { id: orderId } = req.params;
+  const order = await OrdersDbController.getInstance().get(orderId);
+
+  checkPermissions(req.user, order.user);
+  res.status(StatusCodes.OK).json({ order });
 };
 
 const getCurrentUserOrders = async (req, res) => {
- const orders = await Order.find({ user: req.user.userId });
- res.status(StatusCodes.OK).json({ orders, count: orders.length });
+  const orders = await OrdersDbController.getInstance().getManyByUser(req.user.userId);
+  res.status(StatusCodes.OK).json({ orders, count: orders.length });
 };
 
 const createOrder = async (req, res) => {
@@ -42,8 +41,9 @@ const createOrder = async (req, res) => {
    let subtotal = 0;
 
    for (const item of cartItems) {
-     const dbProduct = await Product.findOne({ _id: item.product });
-     if (!dbProduct) throw new CustomError.NotFoundError('Product not found');
+    const dbProduct = await ProductsDbController.getInstance().get(
+      item.product
+    );
      const { name, price, image, _id } = dbProduct;
      const singleOrderItem = {
        amount: item.amount,
@@ -63,7 +63,7 @@ const createOrder = async (req, res) => {
      currency: 'usd',
    });
 
-   const order = await Order.create({
+   const order = await OrdersDbController.getInstance().add({
      orderItems,
      total,
      subtotal,
@@ -78,20 +78,16 @@ const createOrder = async (req, res) => {
      .json({ order, clientSecret: order.clientSecret });
 };
 
-const updateOrder = async (req, res) => { 
- const { id: orderId } = req.params;
- const { paymentIntentId } = req.body;
- const order = await Order.findOne({ _id: orderId });
- if (!order) 
-  throw new CustomError.NotFoundError('Order not found');
+const payOrder = async (req, res) => { 
+  const { id: orderId } = req.params;
+  const { paymentIntentId } = req.body;
+  const order = await OrdersDbController.getInstance().get(orderId);
 
- checkPermissions(req.user, order.user);
+  checkPermissions(req.user, order.user);
+  
+  const payedOrder = await OrdersDbController.getInstance().pay(orderId, paymentIntentId);
 
- order.paymentIndentId = paymentIntentId;
- order.status = 'paid';
- await order.save();
-
- res.status(StatusCodes.OK).json({ order });
+  res.status(StatusCodes.OK).json({ payedOrder });
 };
 
 module.exports = {
@@ -99,5 +95,5 @@ module.exports = {
   getOrder,
   getCurrentUserOrders,
   createOrder,
-  updateOrder,
+  payOrder,
 };
