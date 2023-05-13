@@ -37,6 +37,13 @@ class UsersDbController {
     });
   }
 
+  async updatePassword(id, newPassword) {
+    const user = await User.findOne({ _id: id });
+    user.password = newPassword;
+    await user.save();
+    return user;
+  }
+
   async isPasswordCorrect(id, password) {
     const user = await User.findOne({ _id: id });
     return await user.comparePassword(password);

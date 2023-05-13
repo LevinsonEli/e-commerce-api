@@ -23,8 +23,8 @@ const createReview = async (req, res) => {
     throw new CustomError.BadRequestError('User already submitted review for this product');
 
   req.body.createdBy = req.user.userId;
-  const review = await ReviewsDbController.getInstance().add(req.body);
   console.log(req.body);
+  const review = await ReviewsDbController.getInstance().add(req.body);
   res.status(StatusCodes.CREATED).json({ review });
 }
 

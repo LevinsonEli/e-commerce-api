@@ -12,7 +12,7 @@ const {
   updateUserPassword,
 } = require('../controllers/users');
 
-router.get('/', authenticateUser, authorizePermissions('admin', 'user'), getAllUsers);
+router.get('/', authenticateUser, authorizePermissions('admin'), getAllUsers);
 router.get('/showMe', authenticateUser, getCurrentUser);
 router.patch('/updateMe', authenticateUser, updateUser);
 router.patch('/updateMyPassword', authenticateUser, updateUserPassword);
