@@ -23,7 +23,6 @@ const getSingleProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const { id } = req.params;
-  ProductValidator.getInstance().validateUpdateProductInput();
   const product = await ProductsDbController.getInstance().update(id, req.body);
   res.status(StatusCodes.OK).json({ product });
 };
