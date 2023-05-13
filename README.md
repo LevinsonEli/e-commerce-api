@@ -5,5 +5,5 @@ The e-commrece web api with users, products, cart and orders
   * NodeJs + Express
   * MongoDB
 
-Testable with postman collection on [https://e-commerce-api-express.herokuapp.com/api/v1](https://e-commerce-hy85.onrender.com/api/v1/)
+Testable with postman collection on [https://e-commerce-hy85.onrender.com/api/v1/](https://e-commerce-hy85.onrender.com/api/v1/)
 Or on your locahost
