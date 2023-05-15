@@ -2,49 +2,42 @@ const Product = require('../../models/Product');
 const CustomError = require('../../errors');
 
 
-class ProductsDbController {
-  static #instance;
+const getAll = async () => {
+  return await Product.find({}).populate('reviews');
+};
 
-  static getInstance() {
-    if (!this.#instance) this.#instance = new ProductsDbController();
-    return this.#instance;
-  }
+const getOne = async (id) => {
+  const product = await Product.findOne({ _id: id });
+  if (!product) throw new CustomError.NotFoundError('Product not found');
 
-  async getMany() {
-    return await Product.find({}).populate('reviews');
-  }
+  return product;
+};
 
-  async get(id) {
-    const product = await Product.findOne({ _id: id });
-    if (!product)
-      throw new CustomError.NotFoundError('Product not found');
+const create = async (data) => {
+  return await Product.create(data);
+};
 
-    return product;
-  }
-
-  async add(data) {
-    return await Product.create(data);
-  }
-
-  async update(id, data) {
-    const product = await Product.findOneAndUpdate({ _id: id }, data, {
+const updateOne = async (id, data) => {
+  const product = await Product.findOneAndUpdate({ _id: id }, data, {
     new: true,
     runValidators: true,
-    });
-    if (!product) 
-      throw new CustomError.NotFoundError('Product not found');
+  });
 
-    return product;
-  }
+  return product;
+};
 
-  async delete(id) {
-    const product = await Product.findOne({ _id: id });
-    if (!product) 
-      throw new CustomError.NotFoundError('Product not found');
-    await product.remove();
-    
-    return true;
-  }
-}
+const deleteOne = async (id) => {
+  const product = await Product.findOne({ _id: id });
+  if (!product) throw new CustomError.NotFoundError('Product not found');
+  await product.remove();
 
-module.exports = ProductsDbController;
+  return true;
+};
+
+module.exports = {
+  getAll,
+  getOne,
+  create,
+  updateOne,
+  deleteOne,
+};
