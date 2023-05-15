@@ -4,33 +4,32 @@ const path = require('path');
 
 const ProductsDbController = require('../db/controllers/products');
 
-const createProduct = async (req, res) => {
+const create = async (req, res) => {
   req.body.createdBy = req.user.userId;
-  const product = await ProductsDbController.getInstance().add(req.body);
+  const product = await ProductsDbController.create(req.body);
   res.status(StatusCodes.CREATED).json({ product });
 };
 
-const getAllProducts = async (req, res) => {
-  const products = await ProductsDbController.getInstance().getMany();
+const getAll = async (req, res) => {
+  const products = await ProductsDbController.getAll();
   res.status(StatusCodes.OK).json({ products, count: products.length });
 };
 
-const getSingleProduct = async (req, res) => {
+const getOne = async (req, res) => {
   const { id } = req.params;
-  const product = await ProductsDbController.getInstance().get(id);
+  const product = await ProductsDbController.getOne(id);
   res.status(StatusCodes.OK).json({ product });
 };
 
-const updateProduct = async (req, res) => {
+const updateOne = async (req, res) => {
   const { id } = req.params;
-  ProductValidator.getInstance().validateUpdateProductInput();
-  const product = await ProductsDbController.getInstance().update(id, req.body);
+  const product = await ProductsDbController.updateOne(id, req.body);
   res.status(StatusCodes.OK).json({ product });
 };
 
-const deleteProduct = async (req, res) => {
+const deleteOne = async (req, res) => {
   const { id } = req.params;
-  await ProductsDbController.getInstance().delete(id);
+  await ProductsDbController.deleteOne(id);
   res.status(StatusCodes.OK).json({ success: true });
 };
 
@@ -57,10 +56,10 @@ const uploadImage = async (req, res) => {
 };
 
 module.exports = {
-  createProduct,
-  getAllProducts,
-  getSingleProduct,
-  updateProduct,
-  deleteProduct,
+  create,
+  getAll,
+  getOne,
+  updateOne,
+  deleteOne,
   uploadImage,
 };

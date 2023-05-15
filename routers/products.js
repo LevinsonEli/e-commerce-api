@@ -2,24 +2,25 @@ const express = require('express');
 const router = express.Router();
 const { authenticateUser, authorizePermissions } = require('../middleware/authentication');
 const {
- createProduct,
- getAllProducts,
- getSingleProduct,
- updateProduct,
- deleteProduct,
+ create,
+ getAll,
+ getOne,
+ updateOne,
+ deleteOne,
  uploadImage,
 } = require('../controllers/products');
 
+
 router.route('/')
- .get(getAllProducts)
- .post(authenticateUser, authorizePermissions('admin'), createProduct);
+ .get(getAll)
+ .post(authenticateUser, authorizePermissions('admin'), create);
 router
   .route('/uploadImage')
   .post(authenticateUser, authorizePermissions('admin'),  uploadImage);
 router
   .route('/:id')
-  .get(getSingleProduct)
-  .patch(authenticateUser, authorizePermissions('admin'), updateProduct)
-  .delete(authenticateUser, authorizePermissions('admin'),  deleteProduct);
+  .get(getOne)
+  .patch(authenticateUser, authorizePermissions('admin'), updateOne)
+  .delete(authenticateUser, authorizePermissions('admin'),  deleteOne);
 
 module.exports = router;
