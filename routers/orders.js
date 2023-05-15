@@ -5,21 +5,22 @@ const {
   authorizePermissions,
 } = require('../middleware/authentication');
 const {
-  getAllOrders,
-  getOrder,
+  getAll,
+  getOne,
   getCurrentUserOrders,
-  createOrder,
-  payOrder,
+  create,
+  pay,
 } = require('../controllers/orders');
+
 
 router
   .route('/')
-  .get(authenticateUser, authorizePermissions('admin'),  getAllOrders)
-  .post(authenticateUser, createOrder);
+  .get(authenticateUser, authorizePermissions('admin'),  getAll)
+  .post(authenticateUser, create);
 router.route('/getCurrentUserOrders').get(authenticateUser, getCurrentUserOrders);
 router
   .route('/:id')
-  .get(authenticateUser, getOrder)
-  .patch(authenticateUser, payOrder);
+  .get(authenticateUser, getOne)
+  .patch(authenticateUser, pay);
 
 module.exports = router;

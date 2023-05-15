@@ -1,49 +1,43 @@
 const Order = require('../../models/Order');
 const CustomError = require('../../errors');
 
-class OrdersDbController {
-  static #instance;
+const getAll = async () => {
+  return await Order.find({});
+};
 
-  static getInstance() {
-    if (!this.#instance) this.#instance = new OrdersDbController();
-    return this.#instance;
-  }
+const getAllByUser = async (userId) => {
+  return await Order.find({ user: userId });
+};
 
-  async getMany() {
-    return await Order.find({});
-  }
+const getOne = async (id) => {
+  const order = await Order.findOne({ _id: id });
+  if (!order) throw new CustomError.NotFoundError('Order not found');
 
-  async getManyByUser(userId) {
-    return await Order.find({ user: userId });
-  }
+  return order;
+};
 
-  async get(id) {
-    const order = await Order.findOne({ _id: id });
-    if (!order) throw new CustomError.NotFoundError('Order not found');
+const create = async (data) => {
+  return await Order.create(data);
+};
 
-    return order;
-  }
+const pay = async (id, paymentIndentId) => {
+  return await Order.findOneAndUpdate(
+    { _id: id },
+    {
+      paymentIndentId,
+      status: 'paid',
+    },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+};
 
-  async add(data) {
-    return await Order.create(data);
-  }
-
-  async pay(id, paymentIndentId) {
-    return await Order.findOneAndUpdate(
-      { _id: id },
-      {
-        paymentIndentId,
-        status: 'paid',
-      },
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
-  }
-
-  async delete(id) {
-  }
+module.exports = {
+  getAll,
+  getAllByUser,
+  getOne,
+  create,
+  pay,
 }
-
-module.exports = OrdersDbController;
