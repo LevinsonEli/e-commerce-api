@@ -62,7 +62,7 @@ const start = async () => {
   app.listen(port, () => console.log(`Listening on port ${ port }`));  
  } catch (err) {
   console.log(err);
-  exist(1);
+  exit(1);
  }
 }
 
