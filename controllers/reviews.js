@@ -9,46 +9,42 @@ const {
 const ProductsDbController = require('../db/controllers/products');
 const ReviewsDbController = require('../db/controllers/reviews');
 
-const createReview = async (req, res) => {
+const create = async (req, res) => {
   const { product: productId } = req.body;
-  // const input = new CreateReviewInput(productId, title, description, ...args);
-  // ( throw exception on every validation fail )
-  // const review = await Review.create(input);
-  const product = await ProductsDbController.getInstance().get(productId);
+  const product = await ProductsDbController.getOne(productId);
   if (!product)
     throw new CustomError.NotFoundError('Product not found');
   
-  const existentReview = await ReviewsDbController.getInstance().getByCreatorAndProduct(req.user.userId, productId);
+  const existentReview = await ReviewsDbController.getByCreatorAndProduct(req.user.userId, productId);
   if (existentReview)
     throw new CustomError.BadRequestError('User already submitted review for this product');
 
   req.body.createdBy = req.user.userId;
-  console.log(req.body);
-  const review = await ReviewsDbController.getInstance().add(req.body);
+  const review = await ReviewsDbController.create(req.body);
   res.status(StatusCodes.CREATED).json({ review });
 }
 
-const getAllReviews = async (req, res) => {
-  const reviews = await ReviewsDbController.getInstance().getMany();
+const getAll = async (req, res) => {
+  const reviews = await ReviewsDbController.getAll();
   res.status(StatusCodes.OK).json({ reviews, count: reviews.count });
 };
 
-const getReview = async (req, res) => {
+const getOne = async (req, res) => {
   const { id } = req.params;
-  const review = await ReviewsDbController.getInstance().get(id);
+  const review = await ReviewsDbController.getOne(id);
   res.status(StatusCodes.OK).json({ review });
 };
 
-const updateReview = async (req, res) => {
+const updateOne = async (req, res) => {
   const { id } = req.params;
   const { rating, comment, title } = req.body;
 
-  const review = await ReviewsDbController.getInstance().get(id);
+  const review = await ReviewsDbController.getOne(id);
   if (!review) 
     throw new CustomError.NotFoundError('Review not found');
 
   checkPermissions(req.user, review.createdBy);
-  const updatedReview = await ReviewsDbController.getInstance().update(id, {
+  const updatedReview = await ReviewsDbController.updateOne(id, {
     rating,
     comment,
     title,
@@ -57,23 +53,22 @@ const updateReview = async (req, res) => {
   res.status(StatusCodes.OK).json({ updatedReview });
 };
 
-const deleteReview = async (req, res) => {
+const deleteOne = async (req, res) => {
   const { id } = req.params;
 
-  const review = await ReviewsDbController.getInstance().get(id);
+  const review = await ReviewsDbController.getOne(id);
   if (!review)
     throw new CustomError.NotFoundError('Review not found');
 
-  // this part does not need to be inside the Input object
   checkPermissions(req.user, review.createdBy);
-  await ReviewsDbController.getInstance().delete(id);
+  await ReviewsDbController.deleteOne(id);
   res.status(StatusCodes.OK).json({ success: true });
 };
 
 module.exports = {
-  createReview,
-  getAllReviews,
-  getReview,
-  updateReview,
-  deleteReview,
+  create,
+  getAll,
+  getOne,
+  updateOne,
+  deleteOne,
 };

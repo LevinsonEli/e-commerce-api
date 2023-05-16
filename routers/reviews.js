@@ -4,19 +4,19 @@ const {
   authenticateUser
 } = require('../middleware/authentication');
 const {
-  createReview,
-  getAllReviews,
-  getReview,
-  updateReview,
-  deleteReview,
+  create,
+  getAll,
+  getOne,
+  updateOne,
+  deleteOne,
 } = require('../controllers/reviews');
 
 router.route('/')
- .get(getAllReviews)
- .post(authenticateUser, createReview);
+ .get(getAll)
+ .post(authenticateUser, create);
 router.route('/:id')
-  .get(getReview)
-  .patch(authenticateUser, updateReview)
-  .delete(authenticateUser, deleteReview);
+  .get(getOne)
+  .patch(authenticateUser, updateOne)
+  .delete(authenticateUser, deleteOne);
 
 module.exports = router;
