@@ -9,39 +9,39 @@ const {
 
 const UsersDbController = require('../db/controllers/users');
 
-const getAllUsers = async (req, res) => {
-  const users = await UsersDbController.getInstance().getMany();
+const getAll = async (req, res) => {
+  const users = await UsersDbController.getAll();
   res.status(StatusCodes.OK).json({ users });
 };
 
-const getUser = async (req, res) => {
+const getOne = async (req, res) => {
   const { id: userId } = req.params;
-  const user = await UsersDbController.getInstance().get(userId);
+  const user = await UsersDbController.getOne(userId);
   if (!user) throw new CustomError.NotFoundError('User not found');
 
   checkPermissions(req.user, user._id);
   res.status(StatusCodes.OK).json({ user });
 };
 
-const getCurrentUser = async (req, res) => {
+const getCurrent = async (req, res) => {
   res.status(StatusCodes.OK).json({ user: req.user });
 };
 
-const updateUser = async (req, res) => {
+const updateOne = async (req, res) => {
   const { email, name } = req.body;
   if (!email || !name)
     throw new CustomError.BadRequestError('Email and name must be provided');
-  const updatedUser = await UsersDbController.getInstance().update(
-    req.user.userId,
-    { email, name }
-  );
+  const updatedUser = await UsersDbController.updateOne(req.user.userId, {
+    email,
+    name,
+  });
   const tokenUser = createTokenUser(updatedUser);
   attachCookiesToResponse({ res, user: tokenUser });
 
   res.status(StatusCodes.OK).json({ success: true });
 };
 
-const updateUserPassword = async (req, res) => {
+const updatePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   const userId = req.user.userId;
 
@@ -50,23 +50,22 @@ const updateUserPassword = async (req, res) => {
       'Old and new passwords must be provided'
     );
 
-  const isOldPasswordCorrect =
-    await UsersDbController.getInstance().isPasswordCorrect(
-      userId,
-      oldPassword
-    );
+  const isOldPasswordCorrect = await UsersDbController.isPasswordCorrect(
+    userId,
+    oldPassword
+  );
   if (!isOldPasswordCorrect)
     throw new CustomError.UnauthenticatedError('Invalid credentials');
 
-  await UsersDbController.getInstance().updatePassword(userId, newPassword);
+  await UsersDbController.updatePassword(userId, newPassword);
 
   res.status(StatusCodes.OK).json({ success: true });
 };
 
 module.exports = {
-  getAllUsers,
-  getCurrentUser,
-  getUser,
-  updateUser,
-  updateUserPassword,
+  getAll,
+  getCurrent,
+  getOne,
+  updateOne,
+  updatePassword,
 };
